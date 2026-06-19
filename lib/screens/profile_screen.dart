@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
 import 'booking_history_screen.dart';
-import 'admin_dashboard_screen.dart';
+
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -236,9 +236,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _showLogoutDialog(context);
           } else if (title == 'My Bookings') {
             Navigator.push(context, MaterialPageRoute(builder: (_) => const BookingHistoryScreen()));
-          } else if (title == 'Admin Dashboard') {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminDashboardScreen()));
-          } else {
+          } 
+          // else if (title == 'Admin Dashboard') {
+          //   Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminDashboardScreen()));
+          // } 
+          else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('$title feature coming soon!'),
