@@ -5,7 +5,7 @@
 **Project Name:** Basic Travel Agency Mobile Application  
 **Document Type:** Software Requirements Specification  
 **Version:** 1.0  
-**Date:** March 2026  
+**Date:** October 2025  
 **Prepared By:** Development Team  
 **Project Status:** Development Phase
 

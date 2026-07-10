@@ -48,7 +48,8 @@ class AuthService {
           await credential.user!.updateDisplayName(name);
           await credential.user!.reload();
 
-          final isSystemAdmin = email.trim().toLowerCase() == 'admin@travelagency.com';
+          final isSystemAdmin = email.trim().toLowerCase() == 'eyerishantora@gmail.com' ||
+              email.trim().toLowerCase() == 'admin@travelagency.com';
 
           // Save basic user data to Firestore
           await _firestoreService.updateUserProfile(credential.user!.uid, {

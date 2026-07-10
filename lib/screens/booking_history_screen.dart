@@ -12,7 +12,8 @@ import 'package:intl/intl.dart';
 // - Empty state with illustration
 
 class BookingHistoryScreen extends StatelessWidget {
-  const BookingHistoryScreen({super.key});
+  final String? statusFilter; // e.g. 'confirmed' — null means show all
+  const BookingHistoryScreen({super.key, this.statusFilter});
 
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
@@ -113,9 +114,11 @@ class BookingHistoryScreen extends StatelessWidget {
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'My Bookings',
-          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+        title: Text(
+          statusFilter != null
+              ? '${statusFilter![0].toUpperCase()}${statusFilter!.substring(1)} Bookings'
+              : 'My Bookings',
+          style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -145,7 +148,13 @@ class BookingHistoryScreen extends StatelessWidget {
             );
           }
 
-          final docs = snapshot.data?.docs ?? [];
+          final allDocs = snapshot.data?.docs ?? [];
+          final docs = statusFilter != null
+              ? allDocs.where((d) {
+                  final s = (d.data() as Map)['status']?.toString().toLowerCase() ?? '';
+                  return s == statusFilter!.toLowerCase();
+                }).toList()
+              : allDocs;
 
           if (docs.isEmpty) {
             return Center(
@@ -331,7 +340,7 @@ class BookingHistoryScreen extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              if (status != 'Cancelled')
+                              if (status.toLowerCase() == 'pending')
                                 TextButton.icon(
                                   onPressed: () => _cancelBooking(context, doc.id),
                                   icon: const Icon(Icons.cancel_outlined, color: Colors.red, size: 18),
