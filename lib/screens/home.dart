@@ -29,7 +29,6 @@ import '../models/place.dart';
 class HomeScreen extends StatefulWidget {
   static const routeName = '/home';
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -38,31 +37,36 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   final TextEditingController _searchController = TextEditingController();
   final FirestoreService _firestoreService = FirestoreService();
-
+  late final Stream<List<Place>> _placesStream;
   final List<Map<String, dynamic>> _upcomingEvents = [
     {
       'title': 'Tokyo Cherry Blossom Festival',
       'date': 'Mar 20 - Apr 10, 2026',
       'location': 'Ueno Park, Tokyo, Japan',
-      'image': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400',
-      'details': 'Experience the breath-taking views of Ueno Park covered in pink cherry blossoms. The festival features local food vendors, lantern illumination at night, and traditional picnic gatherings (Hanami) under the trees.',
+      'image':
+          'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400',
+      'details':
+          'Experience the breath-taking views of Ueno Park covered in pink cherry blossoms. The festival features local food vendors, lantern illumination at night, and traditional picnic gatherings (Hanami) under the trees.',
     },
     {
       'title': 'Rio de Janeiro Carnival',
       'date': 'Feb 13 - Feb 18, 2026',
       'location': 'Sambadrome, Rio, Brazil',
-      'image': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400',
-      'details': 'The biggest and most colorful festival in the world. Witness magnificent samba school parades, extravagant costumes, and infectious street parties (blocos) that cover the entire city.',
+      'image':
+          'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400',
+      'details':
+          'The biggest and most colorful festival in the world. Witness magnificent samba school parades, extravagant costumes, and infectious street parties (blocos) that cover the entire city.',
     },
     {
       'title': 'Munich Oktoberfest',
       'date': 'Sep 19 - Oct 04, 2026',
       'location': 'Theresienwiese, Munich, Germany',
-      'image': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400',
-      'details': 'Celebrate Bavarian culture at the world\'s largest Volksfest. Enjoy traditional German beers served in massive steins, delicious pretzels, amusement rides, and lively brass band music.',
+      'image':
+          'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400',
+      'details':
+          'Celebrate Bavarian culture at the world\'s largest Volksfest. Enjoy traditional German beers served in massive steins, delicious pretzels, amusement rides, and lively brass band music.',
     },
   ];
-
   final List<Map<String, String>> _exchangeRates = [
     {'currency': 'USD to EUR', 'rate': '0.92 €', 'flag': '🇪🇺'},
     {'currency': 'USD to JPY', 'rate': '156.4 ¥', 'flag': '🇯🇵'},
@@ -72,32 +76,53 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   final List<Map<String, dynamic>> _weatherForecasts = [
-    {'city': 'Tokyo', 'temp': '19°C', 'cond': 'Rainy', 'icon': Icons.thunderstorm},
+    {
+      'city': 'Tokyo',
+      'temp': '19°C',
+      'cond': 'Rainy',
+      'icon': Icons.thunderstorm,
+    },
     {'city': 'Paris', 'temp': '24°C', 'cond': 'Sunny', 'icon': Icons.wb_sunny},
-    {'city': 'Rome', 'temp': '26°C', 'cond': 'Clear', 'icon': Icons.brightness_5},
+    {
+      'city': 'Rome',
+      'temp': '26°C',
+      'cond': 'Clear',
+      'icon': Icons.brightness_5,
+    },
     {'city': 'Bali', 'temp': '30°C', 'cond': 'Humid', 'icon': Icons.cloud},
-    {'city': 'New York', 'temp': '22°C', 'cond': 'Cloudy', 'icon': Icons.wb_cloudy},
+    {
+      'city': 'New York',
+      'temp': '22°C',
+      'cond': 'Cloudy',
+      'icon': Icons.wb_cloudy,
+    },
   ];
 
   final List<Map<String, dynamic>> _testimonials = [
     {
       'name': 'Sarah Jenkins',
-      'avatar': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
-      'quote': 'The tour packages were incredibly well structured. Booking a hotel and tour together saved me so much hassle!',
+      'avatar':
+          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
+      'quote':
+          'The tour packages were incredibly well structured. Booking a hotel and tour together saved me so much hassle!',
       'rating': 5,
       'destination': 'Bali, Indonesia',
     },
     {
       'name': 'David Chen',
-      'avatar': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
-      'quote': 'Very seamless checkout process. The customer support answered my queries immediately when I reached out through the help center.',
+      'avatar':
+          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
+      'quote':
+          'Very seamless checkout process. The customer support answered my queries immediately when I reached out through the help center.',
       'rating': 4,
       'destination': 'Tokyo, Japan',
     },
     {
       'name': 'Elena Rostova',
-      'avatar': 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100',
-      'quote': 'Amazing experiences! Wandering the streets of Rome with their guided recommendation list was the highlight of my summer.',
+      'avatar':
+          'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100',
+      'quote':
+          'Amazing experiences! Wandering the streets of Rome with their guided recommendation list was the highlight of my summer.',
       'rating': 5,
       'destination': 'Rome, Italy',
     },
@@ -107,7 +132,8 @@ class _HomeScreenState extends State<HomeScreen> {
     {
       'title': 'Summer Escape to Bali',
       'discount': '20% OFF',
-      'image': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400',
+      'image':
+          'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400',
       'destination': 'Bali, Indonesia',
       'price': '\$320',
       'originalPrice': '\$400',
@@ -116,7 +142,8 @@ class _HomeScreenState extends State<HomeScreen> {
     {
       'title': 'Tokyo Neon Experience',
       'discount': '15% OFF',
-      'image': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400',
+      'image':
+          'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400',
       'destination': 'Tokyo, Japan',
       'price': '\$510',
       'originalPrice': '\$600',
@@ -125,7 +152,8 @@ class _HomeScreenState extends State<HomeScreen> {
     {
       'title': 'Rome Antiquities Tour',
       'discount': 'Buy 1 Get 1',
-      'image': 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400',
+      'image':
+          'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400',
       'destination': 'Rome, Italy',
       'price': '\$80',
       'originalPrice': '\$160',
@@ -138,8 +166,10 @@ class _HomeScreenState extends State<HomeScreen> {
       'title': '5 Smart Packing Hacks for Stress-Free Travel',
       'category': 'Travel Hacks',
       'readTime': '4 min read',
-      'image': 'https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=400',
-      'content': 'Packing can be one of the most stressful parts of traveling. Here are 5 expert tips to optimize your luggage space:\n\n'
+      'image':
+          'https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=400',
+      'content':
+          'Packing can be one of the most stressful parts of traveling. Here are 5 expert tips to optimize your luggage space:\n\n'
           '1. Roll, Don\'t Fold: Rolling your clothes saves incredible space and minimizes wrinkles.\n'
           '2. Use Packing Cubes: Organize items by category or day. This keeps your suitcase neat.\n'
           '3. Heavy Items at the Bottom: Place shoes and heavy toiletries near the wheels of your suitcase for better balance.\n'
@@ -150,8 +180,10 @@ class _HomeScreenState extends State<HomeScreen> {
       'title': 'How to Travel on a Budget without Sacrificing Comfort',
       'category': 'Budget Guide',
       'readTime': '6 min read',
-      'image': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=400',
-      'content': 'Traveling doesn\'t have to break the bank. Here\'s how to experience luxury on a budget:\n\n'
+      'image':
+          'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=400',
+      'content':
+          'Traveling doesn\'t have to break the bank. Here\'s how to experience luxury on a budget:\n\n'
           '1. Travel Off-Season: Destinations are cheaper, less crowded, and flights are discounted.\n'
           '2. Book Flights Incognito: Prevent airline websites from tracking search history and raising prices.\n'
           '3. Leverage Free Walking Tours: A great way to learn a city\'s history while spending little.\n'
@@ -162,8 +194,10 @@ class _HomeScreenState extends State<HomeScreen> {
       'title': '10 Hidden Gem Destinations to Explore in 2026',
       'category': 'Destinations',
       'readTime': '5 min read',
-      'image': 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=400',
-      'content': 'Skip the tourist crowds and check out these 10 breathtaking hidden gems this year:\n\n'
+      'image':
+          'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=400',
+      'content':
+          'Skip the tourist crowds and check out these 10 breathtaking hidden gems this year:\n\n'
           '1. Ronda, Spain: A stunning cliffside town split by a canyon.\n'
           '2. Gimmelwald, Switzerland: A car-free alpine village with gorgeous mountain backdrops.\n'
           '3. Koh Lipe, Thailand: A pristine island paradise with turquoise waters and white sand beaches.\n'
@@ -181,6 +215,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _placesStream = _firestoreService.getPlacesStream();
   }
 
   @override
@@ -294,9 +334,8 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ExploreScreen(
-                    initialSearchQuery: query.trim(),
-                  ),
+                  builder: (context) =>
+                      ExploreScreen(initialSearchQuery: query.trim()),
                 ),
               );
               _searchController.clear();
@@ -305,10 +344,7 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: InputDecoration(
             hintText: 'Search destinations, categories...',
             hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
-            prefixIcon: Icon(
-              Icons.search,
-              color: Colors.blue[400],
-            ),
+            prefixIcon: Icon(Icons.search, color: Colors.blue[400]),
             suffixIcon: _searchController.text.isNotEmpty
                 ? IconButton(
                     icon: const Icon(Icons.clear, color: Colors.white54),
@@ -361,14 +397,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ExploreScreen(
-                      initialCategory: catName,
-                    ),
+                    builder: (context) =>
+                        ExploreScreen(initialCategory: catName),
                   ),
                 );
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1A2642),
                   borderRadius: BorderRadius.circular(20),
@@ -417,6 +455,8 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildWelcomeCard(),
             const SizedBox(height: 30),
             _buildSpecialOffers(),
+            const SizedBox(height: 30),
+            _buildPackagesSection(),
             const SizedBox(height: 30),
             _buildWeatherWidget(),
             const SizedBox(height: 30),
@@ -502,7 +542,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       _searchController.clear();
                       setState(() {});
                     },
-                    child: const Text('Clear', style: TextStyle(color: Colors.blue)),
+                    child: const Text(
+                      'Clear',
+                      style: TextStyle(color: Colors.blue),
+                    ),
                   ),
                 ],
               ),
@@ -517,11 +560,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: double.infinity,
                   child: Column(
                     children: [
-                      Icon(Icons.search_off, size: 48, color: Colors.white.withValues(alpha: 0.3)),
+                      Icon(
+                        Icons.search_off,
+                        size: 48,
+                        color: Colors.white.withValues(alpha: 0.3),
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         'No matching destinations found.',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 15),
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 15,
+                        ),
                       ),
                     ],
                   ),
@@ -538,6 +588,172 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPackagesSection() {
+    return StreamBuilder<List<Place>>(
+      stream: _placesStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(child: CircularProgressIndicator(color: Colors.blue)),
+          );
+        }
+        if (snapshot.hasError) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              'Error loading packages: ${snapshot.error}',
+              style: const TextStyle(color: Colors.redAccent),
+            ),
+          );
+        }
+
+        final all = snapshot.data ?? [];
+        final packages = all.where((p) {
+          final c = p.category.toLowerCase();
+          return c.contains('package') ||
+              c.contains('tour') ||
+              c.contains('attraction');
+        }).toList();
+
+        if (packages.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Packages & Tours',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {},
+                    child: const Text(
+                      'See all',
+                      style: TextStyle(color: Colors.blue),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 180,
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
+                itemCount: packages.length,
+                itemBuilder: (context, index) {
+                  final p = packages[index];
+                  return Container(
+                    width: 260,
+                    height: 176,
+                    margin: const EdgeInsets.only(right: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A2642),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ShillongDetailsScreen(
+                              destinationName: p.name,
+                              imageUrl: p.image,
+                              location: p.location,
+                              price: _extractPrice(p.price),
+                              category: p.category,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(12),
+                              topRight: Radius.circular(12),
+                            ),
+                            child: Image.network(
+                              p.image,
+                              width: 260,
+                              height: 110,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                width: 260,
+                                height: 110,
+                                color: Colors.blueGrey,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 8,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  Text(
+                                    p.name,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${p.location} • ${p.category}',
+                                    style: const TextStyle(
+                                      color: Colors.white54,
+                                      fontSize: 12,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    p.price,
+                                    style: TextStyle(
+                                      color: Colors.blue[300],
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         );
       },
     );
@@ -634,35 +850,51 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 100,
                 height: 100,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  width: 100,
-                  height: 100,
-                  color: const Color(0xFF0D1B2A),
-                  child: const Icon(Icons.image, color: Colors.white24),
-                ),
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 100,
+                    height: 100,
+                    color: const Color(0xFF0D1B2A),
+                    child: const Icon(Icons.image, color: Colors.white24),
+                  );
+                },
               ),
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       place.name,
-                      style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, color: Colors.blue, size: 13),
+                        const Icon(
+                          Icons.location_on,
+                          color: Colors.blue,
+                          size: 13,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             place.location,
-                            style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12),
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.6),
+                              fontSize: 12,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -676,12 +908,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 4),
                         Text(
                           place.rating.toString(),
-                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const Spacer(),
                         Text(
                           place.price,
-                          style: TextStyle(color: Colors.blue[300], fontSize: 13, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            color: Colors.blue[300],
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
@@ -1535,7 +1775,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                       destinationName: offer['title']!,
                                       imageUrl: offer['image']!,
                                       location: offer['destination']!,
-                                      price: double.tryParse(offer['price']!.replaceAll(r'\$', '')) ?? 100.0,
+                                      price:
+                                          double.tryParse(
+                                            offer['price']!.replaceAll(
+                                              r'\$',
+                                              '',
+                                            ),
+                                          ) ??
+                                          100.0,
                                       category: offer['category']!,
                                     ),
                                   ),
@@ -1585,9 +1832,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ExploreScreen(
-                        initialCategory: 'Hotels',
-                      ),
+                      builder: (context) =>
+                          const ExploreScreen(initialCategory: 'Hotels'),
                     ),
                   );
                 },
@@ -1670,9 +1916,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               hotelName: hotel.name,
                               location: hotel.location,
                               rating: hotel.rating,
-                              reviews: int.tryParse(
-                                hotel.reviews.replaceAll(RegExp(r'[^0-9]'), ''),
-                              ) ?? 0,
+                              reviews:
+                                  int.tryParse(
+                                    hotel.reviews.replaceAll(
+                                      RegExp(r'[^0-9]'),
+                                      '',
+                                    ),
+                                  ) ??
+                                  0,
                               imageUrl: hotel.image,
                               price: _extractPrice(hotel.price),
                               type: 'hotel',
@@ -1735,7 +1986,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                       child: Text(
                                         hotel.location,
                                         style: TextStyle(
-                                          color: Colors.white.withValues(alpha: 0.6),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.6,
+                                          ),
                                           fontSize: 11,
                                         ),
                                         maxLines: 1,
@@ -1746,7 +1999,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Row(
                                       children: [
@@ -1867,7 +2121,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue[400]!.withValues(alpha: 0.15),
+                                    color: Colors.blue[400]!.withValues(
+                                      alpha: 0.15,
+                                    ),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
@@ -2505,7 +2761,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.calendar_month, color: Colors.blue[400], size: 16),
+                    Icon(
+                      Icons.calendar_month,
+                      color: Colors.blue[400],
+                      size: 16,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       event['date']!,
@@ -2564,10 +2824,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () => Navigator.pop(context),
                   child: const Text(
                     'Close Details',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -2654,7 +2911,10 @@ class _HomeScreenState extends State<HomeScreen> {
               final r = _exchangeRates[index];
               return Container(
                 margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1A2642),
                   borderRadius: BorderRadius.circular(16),
@@ -2665,10 +2925,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: Row(
                   children: [
-                    Text(
-                      r['flag']!,
-                      style: const TextStyle(fontSize: 22),
-                    ),
+                    Text(r['flag']!, style: const TextStyle(fontSize: 22)),
                     const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

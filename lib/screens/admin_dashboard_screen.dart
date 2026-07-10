@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import '../services/firestore_service.dart';
+import '../models/place.dart';
 
 // AdminDashboardScreen - Item 9: Admin Panel
 //
@@ -22,11 +24,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   String _filterStatus = 'All';
+  final FirestoreService _firestoreService = FirestoreService();
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      setState(() {});
+    });
   }
 
   @override
@@ -35,8 +41,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     super.dispose();
   }
 
-  Stream<QuerySnapshot> get _bookingsStream =>
-      FirebaseFirestore.instance.collection('bookings').orderBy('createdAt', descending: true).snapshots();
+  Stream<QuerySnapshot> get _bookingsStream => FirebaseFirestore.instance
+      .collection('bookings')
+      .orderBy('createdAt', descending: true)
+      .snapshots();
 
   Stream<QuerySnapshot> get _usersStream =>
       FirebaseFirestore.instance.collection('users').snapshots();
@@ -93,14 +101,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         title: Row(
           children: [
             Icon(
-              status == 'Confirmed' ? Icons.check_circle_outline : Icons.cancel_outlined,
+              status == 'Confirmed'
+                  ? Icons.check_circle_outline
+                  : Icons.cancel_outlined,
               color: status == 'Confirmed' ? Colors.green : Colors.red,
               size: 24,
             ),
             const SizedBox(width: 8),
             Text(
               '${status == 'Confirmed' ? 'Confirm' : 'Cancel'} Booking',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
             ),
           ],
         ),
@@ -116,10 +130,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: status == 'Confirmed' ? Colors.green : Colors.red,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              backgroundColor: status == 'Confirmed'
+                  ? Colors.green
+                  : Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-            child: Text('Yes, $status', style: const TextStyle(color: Colors.white)),
+            child: Text(
+              'Yes, $status',
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -132,18 +153,25 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
   Future<void> _updateBookingStatus(String docId, String newStatus) async {
     try {
-      await FirebaseFirestore.instance.collection('bookings').doc(docId).update({'status': newStatus});
+      await FirebaseFirestore.instance.collection('bookings').doc(docId).update(
+        {'status': newStatus},
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Booking status updated to $newStatus'),
-            backgroundColor: newStatus == 'Confirmed' ? Colors.green : Colors.red,
+            backgroundColor: newStatus == 'Confirmed'
+                ? Colors.green
+                : Colors.red,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        _showErrorDialog('Update Failed', 'Failed to update booking status: $e');
+        _showErrorDialog(
+          'Update Failed',
+          'Failed to update booking status: $e',
+        );
       }
     }
   }
@@ -179,7 +207,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         ),
         title: const Text(
           'Admin Dashboard',
-          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         bottom: TabBar(
           controller: _tabController,
@@ -189,16 +221,305 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           tabs: const [
             Tab(text: 'Overview & Bookings'),
             Tab(text: 'Users'),
+            Tab(text: 'Places'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildBookingsTab(),
-          _buildUsersTab(),
+        children: [_buildBookingsTab(), _buildUsersTab(), _buildPlacesTab()],
+      ),
+      floatingActionButton: _tabController.index == 2
+          ? FloatingActionButton(
+              onPressed: () => _openPlaceEditor(null),
+              backgroundColor: Colors.blue,
+              child: const Icon(Icons.add),
+            )
+          : null,
+    );
+  }
+
+  Future<void> _openPlaceEditor(Place? place) async {
+    final idController = TextEditingController(text: place?.id ?? '');
+    final nameController = TextEditingController(text: place?.name ?? '');
+    final locationController = TextEditingController(
+      text: place?.location ?? '',
+    );
+    final categoryController = TextEditingController(
+      text: place?.category ?? 'Attractions',
+    );
+    final priceController = TextEditingController(
+      text: place?.price ?? '\$100',
+    );
+    final imageController = TextEditingController(text: place?.image ?? '');
+    final descController = TextEditingController(
+      text: place?.description ?? '',
+    );
+    final ratingController = TextEditingController(
+      text: place?.rating.toString() ?? '4.5',
+    );
+    final reviewsController = TextEditingController(
+      text: place?.reviews ?? '100',
+    );
+    final isOpen = ValueNotifier<bool>(place?.isOpen ?? true);
+    final durationController = TextEditingController(
+      text: place?.duration.toString() ?? '3',
+    );
+
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF0A1628),
+        title: Text(
+          place == null ? 'Create Package' : 'Edit Package',
+          style: const TextStyle(color: Colors.white),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: idController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(labelText: 'ID (unique)'),
+              ),
+              TextField(
+                controller: nameController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
+              TextField(
+                controller: locationController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(labelText: 'Location'),
+              ),
+              TextField(
+                controller: categoryController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(labelText: 'Category'),
+              ),
+              TextField(
+                controller: priceController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(labelText: 'Price'),
+              ),
+              TextField(
+                controller: imageController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(labelText: 'Image URL'),
+              ),
+              TextField(
+                controller: descController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
+              TextField(
+                controller: ratingController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(labelText: 'Rating'),
+              ),
+              TextField(
+                controller: reviewsController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(labelText: 'Reviews'),
+              ),
+              TextField(
+                controller: durationController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(labelText: 'Duration (days)'),
+              ),
+              Row(
+                children: [
+                  const Text('Open', style: TextStyle(color: Colors.white)),
+                  const SizedBox(width: 8),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: isOpen,
+                    builder: (context, v, _) => Switch(
+                      value: v,
+                      onChanged: (val) => isOpen.value = val,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newId = idController.text.trim().isEmpty
+                  ? nameController.text.trim().toLowerCase().replaceAll(
+                      RegExp(r"[^a-z0-9_]"),
+                      '_',
+                    )
+                  : idController.text.trim();
+
+              final newPlace = Place(
+                id: newId,
+                name: nameController.text.trim(),
+                location: locationController.text.trim(),
+                category: categoryController.text.trim(),
+                rating: double.tryParse(ratingController.text.trim()) ?? 4.5,
+                reviews: reviewsController.text.trim(),
+                image: imageController.text.trim(),
+                description: descController.text.trim(),
+                price: priceController.text.trim(),
+                isOpen: isOpen.value,
+                duration: int.tryParse(durationController.text.trim()) ?? 3,
+              );
+
+              try {
+                await _firestoreService.savePlace(newPlace);
+                if (mounted) Navigator.pop(ctx);
+              } catch (e) {
+                if (mounted) _showErrorDialog('Save failed', e.toString());
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            child: const Text('Save'),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPlacesTab() {
+    return StreamBuilder<List<Place>>(
+      stream: _firestoreService.getPlacesStream(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.blue),
+          );
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'Error loading places: ${snapshot.error}',
+              style: const TextStyle(color: Colors.redAccent),
+            ),
+          );
+        }
+
+        final places = snapshot.data ?? [];
+        if (places.isEmpty) {
+          return const Center(
+            child: Text(
+              'No packages found',
+              style: TextStyle(color: Colors.white54),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: places.length,
+          itemBuilder: (context, index) {
+            final p = places[index];
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A2642),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      p.image,
+                      width: 84,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 84,
+                        height: 56,
+                        color: Colors.blueGrey,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          p.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${p.location} • ${p.category}',
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => _openPlaceEditor(p),
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                  ),
+                  IconButton(
+                    onPressed: () async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          backgroundColor: const Color(0xFF0A1628),
+                          title: const Text(
+                            'Delete package',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          content: const Text(
+                            'Are you sure you want to delete this package?',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text(
+                                'No',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              child: const Text('Yes'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirmed == true) {
+                        try {
+                          await _firestoreService.deletePlace(p.id);
+                        } catch (e) {
+                          if (mounted)
+                            _showErrorDialog('Delete failed', e.toString());
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.delete, color: Colors.redAccent),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -207,7 +528,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       stream: _bookingsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: Colors.blue));
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.blue),
+          );
         }
 
         if (snapshot.hasError) {
@@ -237,8 +560,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         for (final doc in allDocs) {
           final d = doc.data() as Map<String, dynamic>;
           final s = (d['status'] ?? 'Pending').toString().toLowerCase();
-          if (s == 'pending') { pending++; }
-          else if (s == 'confirmed') {
+          if (s == 'pending') {
+            pending++;
+          } else if (s == 'confirmed') {
             confirmed++;
             totalRevenue += (d['totalPrice'] ?? 0).toDouble();
           }
@@ -260,17 +584,37 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               // --- Stats row ---
               Row(
                 children: [
-                  _statCard('Total', allDocs.length.toString(), Icons.list_alt, Colors.blue),
+                  _statCard(
+                    'Total',
+                    allDocs.length.toString(),
+                    Icons.list_alt,
+                    Colors.blue,
+                  ),
                   const SizedBox(width: 10),
-                  _statCard('Pending', pending.toString(), Icons.hourglass_top, Colors.orange),
+                  _statCard(
+                    'Pending',
+                    pending.toString(),
+                    Icons.hourglass_top,
+                    Colors.orange,
+                  ),
                 ],
               ),
               const SizedBox(height: 10),
               Row(
                 children: [
-                  _statCard('Confirmed', confirmed.toString(), Icons.check_circle, Colors.green),
+                  _statCard(
+                    'Confirmed',
+                    confirmed.toString(),
+                    Icons.check_circle,
+                    Colors.green,
+                  ),
                   const SizedBox(width: 10),
-                  _statCard('Revenue', '\$${totalRevenue.toStringAsFixed(0)}', Icons.attach_money, Colors.amber),
+                  _statCard(
+                    'Revenue',
+                    '\$${totalRevenue.toStringAsFixed(0)}',
+                    Icons.attach_money,
+                    Colors.amber,
+                  ),
                 ],
               ),
 
@@ -281,7 +625,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 children: [
                   const Text(
                     'Bookings',
-                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const Spacer(),
                   ...['All', 'Pending', 'Confirmed', 'Cancelled'].map(
@@ -289,15 +637,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       onTap: () => setState(() => _filterStatus = s),
                       child: Container(
                         margin: const EdgeInsets.only(left: 6),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
-                          color: _filterStatus == s ? Colors.blue : const Color(0xFF1A2642),
+                          color: _filterStatus == s
+                              ? Colors.blue
+                              : const Color(0xFF1A2642),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           s,
                           style: TextStyle(
-                            color: _filterStatus == s ? Colors.white : Colors.white54,
+                            color: _filterStatus == s
+                                ? Colors.white
+                                : Colors.white54,
                             fontSize: 12,
                           ),
                         ),
@@ -338,7 +693,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                   final createdAt = data['createdAt'] ?? '';
                   String formattedDate = '';
                   try {
-                    formattedDate = DateFormat('MMM d, yyyy HH:mm').format(DateTime.parse(createdAt));
+                    formattedDate = DateFormat(
+                      'MMM d, yyyy HH:mm',
+                    ).format(DateTime.parse(createdAt));
                   } catch (_) {}
 
                   return Container(
@@ -346,7 +703,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A2642),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: statusColor.withValues(alpha: 0.2)),
+                      border: Border.all(
+                        color: statusColor.withValues(alpha: 0.2),
+                      ),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(14),
@@ -366,15 +725,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: statusColor.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: statusColor.withValues(alpha: 0.4)),
+                                  border: Border.all(
+                                    color: statusColor.withValues(alpha: 0.4),
+                                  ),
                                 ),
                                 child: Text(
                                   status,
-                                  style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    color: statusColor,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ],
@@ -382,12 +750,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                           const SizedBox(height: 8),
                           Row(
                             children: [
-                              const Icon(Icons.person, color: Colors.blue, size: 14),
+                              const Icon(
+                                Icons.person,
+                                color: Colors.blue,
+                                size: 14,
+                              ),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
                                   '$userName ($userEmail)',
-                                  style: const TextStyle(color: Colors.white60, fontSize: 12),
+                                  style: const TextStyle(
+                                    color: Colors.white60,
+                                    fontSize: 12,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -398,7 +773,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                             spacing: 10,
                             runSpacing: 6,
                             children: [
-                              _miniChip(Icons.calendar_today, '$checkIn → $checkOut'),
+                              _miniChip(
+                                Icons.calendar_today,
+                                '$checkIn → $checkOut',
+                              ),
                               _miniChip(Icons.people, '$guests guests'),
                             ],
                           ),
@@ -418,17 +796,42 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                               if (status == 'Pending')
                                 Row(
                                   children: [
-                                    _actionButton('Confirm', Colors.green, () => _confirmUpdateStatus(doc.id, 'Confirmed')),
+                                    _actionButton(
+                                      'Confirm',
+                                      Colors.green,
+                                      () => _confirmUpdateStatus(
+                                        doc.id,
+                                        'Confirmed',
+                                      ),
+                                    ),
                                     const SizedBox(width: 8),
-                                    _actionButton('Cancel', Colors.red, () => _confirmUpdateStatus(doc.id, 'Cancelled')),
+                                    _actionButton(
+                                      'Cancel',
+                                      Colors.red,
+                                      () => _confirmUpdateStatus(
+                                        doc.id,
+                                        'Cancelled',
+                                      ),
+                                    ),
                                   ],
                                 )
                               else if (status == 'Confirmed')
-                                _actionButton('Cancel', Colors.red, () => _confirmUpdateStatus(doc.id, 'Cancelled')),
+                                _actionButton(
+                                  'Cancel',
+                                  Colors.red,
+                                  () =>
+                                      _confirmUpdateStatus(doc.id, 'Cancelled'),
+                                ),
                             ],
                           ),
                           const SizedBox(height: 6),
-                          Text(formattedDate, style: const TextStyle(color: Colors.white24, fontSize: 10)),
+                          Text(
+                            formattedDate,
+                            style: const TextStyle(
+                              color: Colors.white24,
+                              fontSize: 10,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -446,7 +849,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       stream: _usersStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: Colors.blue));
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.blue),
+          );
         }
 
         if (snapshot.hasError) {
@@ -473,7 +878,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
         if (docs.isEmpty) {
           return const Center(
-            child: Text('No users found', style: TextStyle(color: Colors.white54)),
+            child: Text(
+              'No users found',
+              style: TextStyle(color: Colors.white54),
+            ),
           );
         }
 
@@ -488,7 +896,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             final createdAt = data['createdAt'] ?? '';
             String formattedDate = '';
             try {
-              formattedDate = DateFormat('MMM d, yyyy').format(DateTime.parse(createdAt));
+              formattedDate = DateFormat(
+                'MMM d, yyyy',
+              ).format(DateTime.parse(createdAt));
             } catch (_) {}
 
             return Container(
@@ -505,7 +915,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     radius: 22,
                     child: Text(
                       name.isNotEmpty ? name[0].toUpperCase() : '?',
-                      style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -518,26 +931,51 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                             Expanded(
                               child: Text(
                                 name,
-                                style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             if (isAdmin) ...[
                               const SizedBox(width: 6),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.amber.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Text('Admin', style: TextStyle(color: Colors.amber, fontSize: 10)),
+                                child: const Text(
+                                  'Admin',
+                                  style: TextStyle(
+                                    color: Colors.amber,
+                                    fontSize: 10,
+                                  ),
+                                ),
                               ),
                             ],
                           ],
                         ),
-                        Text(email, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                        Text(
+                          email,
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 12,
+                          ),
+                        ),
                         if (formattedDate.isNotEmpty)
-                          Text('Joined $formattedDate', style: const TextStyle(color: Colors.white30, fontSize: 11)),
+                          Text(
+                            'Joined $formattedDate',
+                            style: const TextStyle(
+                              color: Colors.white30,
+                              fontSize: 11,
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -582,7 +1020,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                   ),
                   Text(
                     value,
-                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -600,7 +1042,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       children: [
         Icon(icon, color: Colors.blue, size: 13),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white54, fontSize: 12),
+        ),
       ],
     );
   }
@@ -617,7 +1062,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         ),
         child: Text(
           label,
-          style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: color,
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
