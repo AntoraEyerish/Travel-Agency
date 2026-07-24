@@ -1,6 +1,9 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:firebase_auth/firebase_auth.dart' as import_firebase_auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'dart:math';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
 import 'explore_screen.dart';
@@ -9,6 +12,7 @@ import 'hotel_detail_screen.dart';
 import 'help_center_screen.dart';
 import '../services/firestore_service.dart';
 import '../models/place.dart';
+import 'all_packages_screen.dart';
 
 // HomeScreen - Main landing page after login
 //
@@ -161,6 +165,22 @@ class _HomeScreenState extends State<HomeScreen> {
     },
   ];
 
+  final List<String> _unsplashDefaults = [
+    'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400',
+    'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400',
+    'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400',
+    'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=400',
+    'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400',
+    'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400',
+    'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=400',
+    'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400',
+  ];
+
+  final Random _rand = Random();
+
+  String _randomDefaultImage() =>
+      _unsplashDefaults[_rand.nextInt(_unsplashDefaults.length)];
+
   final List<Map<String, String>> _travelArticles = [
     {
       'title': '5 Smart Packing Hacks for Stress-Free Travel',
@@ -255,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
         color: const Color(0xFF0D1B2A),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: Colors.black.withOpacity(0.3),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -286,7 +306,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? Colors.blue.withValues(alpha: 0.15)
+              ? Colors.blue.withOpacity(0.15)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
@@ -320,10 +340,7 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF1A2642),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.07),
-            width: 1,
-          ),
+          border: Border.all(color: Colors.white.withOpacity(0.07), width: 1),
         ),
         child: TextField(
           controller: _searchController,
@@ -343,7 +360,7 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           decoration: InputDecoration(
             hintText: 'Search destinations, categories...',
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
+            hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
             prefixIcon: Icon(Icons.search, color: Colors.blue[400]),
             suffixIcon: _searchController.text.isNotEmpty
                 ? IconButton(
@@ -411,7 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: const Color(0xFF1A2642),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: Colors.white.withOpacity(0.05),
                     width: 1,
                   ),
                 ),
@@ -563,13 +580,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       Icon(
                         Icons.search_off,
                         size: 48,
-                        color: Colors.white.withValues(alpha: 0.3),
+                        color: Colors.white.withOpacity(0.3),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'No matching destinations found.',
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.6),
+                          color: Colors.white.withOpacity(0.6),
                           fontSize: 15,
                         ),
                       ),
@@ -621,6 +638,100 @@ class _HomeScreenState extends State<HomeScreen> {
               c.contains('attraction');
         }).toList();
 
+        // Add a curated set of sample packages/tours with user-provided images
+        if (packages.length < 6) {
+          final sample = [
+            Place(
+              id: 'paris_france',
+              name: 'Paris',
+              location: 'France',
+              category: 'Package',
+              rating: 4.8,
+              reviews: '1.2k',
+              image:
+                  'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400',
+              description: 'Romantic getaway exploring the City of Light.',
+              price: '\$420',
+              isOpen: true,
+              duration: 5,
+            ),
+            Place(
+              id: 'tokyo_japan',
+              name: 'Tokyo',
+              location: 'Japan',
+              category: 'Package',
+              rating: 4.9,
+              reviews: '980',
+              image:
+                  'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400',
+              description: 'Neon nights and cultural highlights in Tokyo.',
+              price: '\$510',
+              isOpen: true,
+              duration: 6,
+            ),
+            Place(
+              id: 'dubai_uae',
+              name: 'Dubai',
+              location: 'UAE',
+              category: 'Package',
+              rating: 4.7,
+              reviews: '1.0k',
+              image:
+                  'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400',
+              description: 'Luxury experiences and modern architecture.',
+              price: '\$690',
+              isOpen: true,
+              duration: 4,
+            ),
+            Place(
+              id: 'new_york_usa',
+              name: 'New York',
+              location: 'USA',
+              category: 'Package',
+              rating: 4.6,
+              reviews: '2.1k',
+              image:
+                  'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=400',
+              description: 'City lights, museums, and iconic landmarks.',
+              price: '\$580',
+              isOpen: true,
+              duration: 5,
+            ),
+            Place(
+              id: 'london_uk',
+              name: 'London',
+              location: 'UK',
+              category: 'Package',
+              rating: 4.7,
+              reviews: '1.4k',
+              image:
+                  'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400',
+              description: 'Historic sites, theater, and riverside walks.',
+              price: '\$460',
+              isOpen: true,
+              duration: 4,
+            ),
+            Place(
+              id: 'bali_indonesia',
+              name: 'Bali',
+              location: 'Indonesia',
+              category: 'Package',
+              rating: 4.8,
+              reviews: '860',
+              image:
+                  'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400',
+              description: 'Beach escapes and island adventures in Bali.',
+              price: '\$320',
+              isOpen: true,
+              duration: 7,
+            ),
+          ];
+
+          for (final s in sample) {
+            if (!packages.any((p) => p.id == s.id)) packages.add(s);
+          }
+        }
+
         if (packages.isEmpty) {
           return const SizedBox.shrink();
         }
@@ -643,7 +754,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              AllPackagesScreen(packages: packages),
+                        ),
+                      );
+                    },
                     child: const Text(
                       'See all',
                       style: TextStyle(color: Colors.blue),
@@ -654,7 +773,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 8),
             SizedBox(
-              height: 180,
+              height: 205,
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
@@ -663,7 +782,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   final p = packages[index];
                   return Container(
                     width: 260,
-                    height: 176,
+                    height: 201,
                     margin: const EdgeInsets.only(right: 12),
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A2642),
@@ -686,64 +805,58 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           ClipRRect(
                             borderRadius: const BorderRadius.only(
                               topLeft: Radius.circular(12),
                               topRight: Radius.circular(12),
                             ),
-                            child: Image.network(
+                            child: _buildImage(
                               p.image,
                               width: 260,
-                              height: 110,
+                              height: 100,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                width: 260,
-                                height: 110,
-                                color: Colors.blueGrey,
-                              ),
                             ),
                           ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 8,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  Text(
-                                    p.name,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  p.name,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${p.location} • ${p.category}',
-                                    style: const TextStyle(
-                                      color: Colors.white54,
-                                      fontSize: 12,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${p.location} • ${p.category}',
+                                  style: const TextStyle(
+                                    color: Colors.white54,
+                                    fontSize: 12,
                                   ),
-                                  const Spacer(),
-                                  Text(
-                                    p.price,
-                                    style: TextStyle(
-                                      color: Colors.blue[300],
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  p.price,
+                                  style: TextStyle(
+                                    color: Colors.blue[300],
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -845,19 +958,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 topLeft: Radius.circular(16),
                 bottomLeft: Radius.circular(16),
               ),
-              child: Image.network(
+              child: _buildImage(
                 place.image,
                 width: 100,
                 height: 100,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 100,
-                    height: 100,
-                    color: const Color(0xFF0D1B2A),
-                    child: const Icon(Icons.image, color: Colors.white24),
-                  );
-                },
               ),
             ),
             Expanded(
@@ -892,7 +997,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             place.location,
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.6),
+                              color: Colors.white.withOpacity(0.6),
                               fontSize: 12,
                             ),
                             maxLines: 1,
@@ -941,6 +1046,32 @@ class _HomeScreenState extends State<HomeScreen> {
       return double.parse(match.group(0)!);
     }
     return 50.0;
+  }
+
+  Widget _buildImage(
+    String? src, {
+    double? width,
+    double? height,
+    BoxFit fit = BoxFit.cover,
+  }) {
+    final fallbackUrl = _randomDefaultImage();
+    if (src == null || src.trim().isEmpty) {
+      return Image.network(fallbackUrl, width: width, height: height, fit: fit);
+    }
+
+    if (src.startsWith('http')) {
+      return Image.network(
+        src,
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) =>
+            Image.network(fallbackUrl, width: width, height: height, fit: fit),
+      );
+    }
+
+    // Assume a local asset path
+    return Image.asset(src, width: width, height: height, fit: fit);
   }
 
   Widget _buildHeader() {
@@ -997,7 +1128,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       'Welcome back,',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: Colors.white.withOpacity(0.7),
                         fontSize: 14,
                       ),
                     ),
@@ -1016,7 +1147,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
+                  color: Colors.white.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -1052,7 +1183,7 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.blue.withValues(alpha: 0.3),
+              color: Colors.blue.withOpacity(0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -1068,7 +1199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
@@ -1092,7 +1223,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               'Explore amazing destinations around the world',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.9),
+                color: Colors.white.withOpacity(0.9),
                 fontSize: 14,
               ),
             ),
@@ -1250,7 +1381,11 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           image: DecorationImage(
-            image: NetworkImage(destination['image']!),
+            image:
+                (destination['image'] != null &&
+                    destination['image']!.startsWith('http'))
+                ? NetworkImage(destination['image']!)
+                : NetworkImage(_randomDefaultImage()),
             fit: BoxFit.cover,
           ),
         ),
@@ -1260,7 +1395,7 @@ class _HomeScreenState extends State<HomeScreen> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Colors.transparent, Colors.black.withValues(alpha: 0.8)],
+              colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
             ),
           ),
           padding: const EdgeInsets.all(20),
@@ -1281,14 +1416,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Icon(
                     Icons.location_on,
-                    color: Colors.white.withValues(alpha: 0.8),
+                    color: Colors.white.withOpacity(0.8),
                     size: 16,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     destination['country']!,
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
+                      color: Colors.white.withOpacity(0.8),
                       fontSize: 14,
                     ),
                   ),
@@ -1355,18 +1490,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 topLeft: Radius.circular(16),
                 bottomLeft: Radius.circular(16),
               ),
-              child: Image.network(
+              child: _buildImage(
                 destination['image']!,
                 width: 120,
                 height: 120,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 120,
-                    color: const Color(0xFF0D1B2A),
-                    child: const Icon(Icons.image, color: Colors.white54),
-                  );
-                },
               ),
             ),
             Expanded(
@@ -1396,7 +1524,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           destination['country']!,
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7),
+                            color: Colors.white.withOpacity(0.7),
                             fontSize: 12,
                           ),
                         ),
@@ -1468,7 +1596,7 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.blue.withValues(alpha: 0.2),
+              color: Colors.blue.withOpacity(0.2),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -1478,19 +1606,11 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(24),
-              child: Image.network(
-                destination['image']!,
+              child: _buildImage(
+                destination['image'],
                 width: double.infinity,
                 height: 250,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: const Color(0xFF1A2642),
-                    child: const Center(
-                      child: Icon(Icons.image, color: Colors.white54, size: 50),
-                    ),
-                  );
-                },
               ),
             ),
             Container(
@@ -1500,8 +1620,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withValues(alpha: 0.3),
-                    Colors.black.withValues(alpha: 0.9),
+                    Colors.black.withOpacity(0.3),
+                    Colors.black.withOpacity(0.9),
                   ],
                 ),
               ),
@@ -1519,7 +1639,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.amber.withValues(alpha: 0.4),
+                      color: Colors.amber.withOpacity(0.4),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -1581,14 +1701,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Icon(
                         Icons.location_on,
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: Colors.white.withOpacity(0.9),
                         size: 18,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         destination['country']!,
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.9),
+                          color: Colors.white.withOpacity(0.9),
                           fontSize: 16,
                         ),
                       ),
@@ -1647,7 +1767,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   image: DecorationImage(
-                    image: NetworkImage(offer['image']!),
+                    image:
+                        (offer['image'] != null &&
+                            offer['image']!.startsWith('http'))
+                        ? NetworkImage(offer['image']!)
+                        : NetworkImage(_randomDefaultImage()),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -1658,8 +1782,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                       colors: [
-                        Colors.black.withValues(alpha: 0.95),
-                        Colors.black.withValues(alpha: 0.4),
+                        Colors.black.withOpacity(0.95),
+                        Colors.black.withOpacity(0.4),
                       ],
                     ),
                   ),
@@ -1903,7 +2027,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: const Color(0xFF1A2642),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.05),
+                        color: Colors.white.withOpacity(0.05),
                         width: 1,
                       ),
                     ),
@@ -1940,22 +2064,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               topLeft: Radius.circular(20),
                               topRight: Radius.circular(20),
                             ),
-                            child: Image.network(
+                            child: _buildImage(
                               hotel.image,
                               height: 110,
                               width: double.infinity,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  height: 110,
-                                  color: const Color(0xFF0D1B2A),
-                                  child: const Icon(
-                                    Icons.hotel,
-                                    color: Colors.white24,
-                                    size: 36,
-                                  ),
-                                );
-                              },
                             ),
                           ),
                           Padding(
@@ -1986,9 +2099,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       child: Text(
                                         hotel.location,
                                         style: TextStyle(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.6,
-                                          ),
+                                          color: Colors.white.withOpacity(0.6),
                                           fontSize: 11,
                                         ),
                                         maxLines: 1,
@@ -2075,7 +2186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: const Color(0xFF1A2642),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: Colors.white.withOpacity(0.05),
                   width: 1,
                 ),
               ),
@@ -2088,23 +2199,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
+                        child: _buildImage(
                           article['image']!,
                           width: 80,
                           height: 80,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 80,
-                              height: 80,
-                              color: const Color(0xFF0D1B2A),
-                              child: const Icon(
-                                Icons.article,
-                                color: Colors.white24,
-                                size: 30,
-                              ),
-                            );
-                          },
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -2121,9 +2220,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue[400]!.withValues(
-                                      alpha: 0.15,
-                                    ),
+                                    color: Colors.blue[400]!.withOpacity(0.15),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
@@ -2214,22 +2311,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: Image.network(
+                        child: _buildImage(
                           article['image']!,
                           height: 180,
                           width: double.infinity,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 180,
-                              color: const Color(0xFF1A2642),
-                              child: const Icon(
-                                Icons.image,
-                                color: Colors.white24,
-                                size: 50,
-                              ),
-                            );
-                          },
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -2242,7 +2328,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.blue[400]!.withValues(alpha: 0.15),
+                              color: Colors.blue[400]!.withOpacity(0.15),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -2344,7 +2430,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: const Color(0xFF1A2642),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: Colors.white.withOpacity(0.05),
                     width: 1,
                   ),
                 ),
@@ -2435,7 +2521,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: const Color(0xFF1A2642),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: Colors.white.withOpacity(0.05),
                     width: 1,
                   ),
                 ),
@@ -2446,7 +2532,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         CircleAvatar(
                           radius: 20,
-                          backgroundImage: NetworkImage(t['avatar'] as String),
+                          backgroundImage:
+                              (t['avatar'] as String).startsWith('http')
+                              ? NetworkImage(t['avatar'] as String)
+                              : NetworkImage(_randomDefaultImage()),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -2553,7 +2642,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: const Color(0xFF1A2642),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: Colors.white.withOpacity(0.05),
                     width: 1,
                   ),
                 ),
@@ -2634,7 +2723,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                     image: DecorationImage(
-                      image: NetworkImage(event['image']!),
+                      image:
+                          (event['image'] != null &&
+                              event['image']!.startsWith('http'))
+                          ? NetworkImage(event['image']!)
+                          : NetworkImage(_randomDefaultImage()),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -2646,7 +2739,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withValues(alpha: 0.85),
+                          Colors.black.withOpacity(0.85),
                         ],
                       ),
                     ),
@@ -2742,7 +2835,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Image.network(
+                  child: _buildImage(
                     event['image']!,
                     height: 180,
                     width: double.infinity,
@@ -2849,10 +2942,7 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF1A2642),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.05),
-            width: 1,
-          ),
+          border: Border.all(color: Colors.white.withOpacity(0.05), width: 1),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -2919,7 +3009,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: const Color(0xFF1A2642),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: Colors.white.withOpacity(0.05),
                     width: 1,
                   ),
                 ),

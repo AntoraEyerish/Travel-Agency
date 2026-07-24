@@ -377,6 +377,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
               try {
                 await _firestoreService.savePlace(newPlace);
+                // ignore: use_build_context_synchronously
                 if (mounted) Navigator.pop(ctx);
               } catch (e) {
                 if (mounted) _showErrorDialog('Save failed', e.toString());
@@ -508,6 +509,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                           await _firestoreService.deletePlace(p.id);
                         } catch (e) {
                           if (mounted)
+                            // ignore: curly_braces_in_flow_control_structures
                             _showErrorDialog('Delete failed', e.toString());
                         }
                       }
